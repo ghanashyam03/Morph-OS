@@ -1,0 +1,37 @@
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+*.hprof
+.navigation/
+captures/
+# Android Studio capturing layout inspector
+layout-inspector/
+# Keystore files
+*.jks
+*.keystore
+# Google Services keys
+google-services.json
+# NDK
+obj/
+# Local model files
+/app/src/main/assets/models/
+/core/ai/src/main/assets/models/
+*.gguf
+*.onnx
+# Crash logs
+crash-logs/
+# OS metadata
+.DS_Store
+Thumbs.db
