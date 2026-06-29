@@ -9,6 +9,6 @@ interface RankingAgent {
     fun rankContent(
         candidates: List<ContentCandidate>,
         context: ContextSnapshot,
-        memoryProfile: MemoryProfile
+        profile: MemoryProfile
     ): List<RankedContent>
 }

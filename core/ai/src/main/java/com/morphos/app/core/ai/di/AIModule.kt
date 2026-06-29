@@ -1,9 +1,12 @@
 package com.morphos.app.core.ai.di
 
+import android.content.Context
 import com.morphos.app.core.ai.*
+import com.morphos.app.core.data.network.OpenRouterApiService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -14,19 +17,19 @@ object AIModule {
     @Provides
     @Singleton
     fun provideLlamaCppEngine(): LlamaCppEngine {
-        TODO("Not yet implemented")
+        return LlamaCppEngine()
     }
 
     @Provides
     @Singleton
-    fun provideOnnxEmbeddingEngine(): OnnxEmbeddingEngine {
-        TODO("Not yet implemented")
+    fun provideOnnxEmbeddingEngine(@ApplicationContext context: Context): OnnxEmbeddingEngine {
+        return OnnxEmbeddingEngine(context)
     }
 
     @Provides
     @Singleton
-    fun provideCloudAIEngine(): CloudAIEngine {
-        TODO("Not yet implemented")
+    fun provideCloudAIEngine(openRouterApiService: OpenRouterApiService): CloudAIEngine {
+        return CloudAIEngine(openRouterApiService)
     }
 
     @Provides
@@ -36,6 +39,6 @@ object AIModule {
         onnx: OnnxEmbeddingEngine,
         cloud: CloudAIEngine
     ): AIEngineManager {
-        TODO("Not yet implemented")
+        return AIEngineManager(llama, onnx, cloud)
     }
 }

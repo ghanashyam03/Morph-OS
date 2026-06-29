@@ -1,20 +1,17 @@
 package com.morphos.app.core.data.db
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-import androidx.room.Dao
-import androidx.room.Query
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
+import androidx.room.*
 import kotlinx.coroutines.flow.Flow
 
 @Entity(tableName = "widgets")
 data class WidgetEntity(
     @PrimaryKey val id: String,
     val name: String,
+    val description: String,
     val templateId: String,
-    val sizeClass: String,
-    val configJson: String,
+    val sizeClass: String,               // enum name
+    val configJson: String,              // Full WidgetConfig serialized as JSON
+    val isPinned: Boolean,
     val createdAt: Long,
     val lastModified: Long,
     val version: Int
@@ -22,15 +19,21 @@ data class WidgetEntity(
 
 @Dao
 interface WidgetDao {
-    @Query("SELECT * FROM widgets")
-    fun getWidgets(): Flow<List<WidgetEntity>>
+    @Query("SELECT * FROM widgets ORDER BY lastModified DESC")
+    fun getAllWidgets(): Flow<List<WidgetEntity>>
 
     @Query("SELECT * FROM widgets WHERE id = :id")
-    suspend fun getWidget(id: String): WidgetEntity?
+    suspend fun getWidgetById(id: String): WidgetEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertWidget(widget: WidgetEntity)
 
+    @Update
+    suspend fun updateWidget(widget: WidgetEntity)
+
     @Query("DELETE FROM widgets WHERE id = :id")
     suspend fun deleteWidget(id: String)
+
+    @Query("SELECT * FROM widgets WHERE templateId = :templateId")
+    suspend fun getByTemplate(templateId: String): List<WidgetEntity>
 }

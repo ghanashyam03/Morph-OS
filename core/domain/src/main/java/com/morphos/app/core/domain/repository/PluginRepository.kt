@@ -1,9 +1,12 @@
 package com.morphos.app.core.domain.repository
 
+import com.morphos.app.core.common.AppResult
 import com.morphos.app.core.domain.model.PluginData
-import kotlinx.coroutines.flow.Flow
 
 interface PluginRepository {
-    suspend fun getCachedPluginData(pluginId: String, widgetId: String): PluginData?
-    suspend fun cachePluginData(pluginId: String, widgetId: String, data: PluginData, ttlSeconds: Int)
+    fun getAvailablePlugins(): List<DataPlugin>
+    suspend fun fetchPluginData(pluginId: String, config: Map<String, String>): AppResult<PluginData>
+    suspend fun getCachedPluginData(dataSourceId: String): PluginData?
+    suspend fun cachePluginData(data: PluginData, ttlSeconds: Int): AppResult<Unit>
+    suspend fun invalidateCache(dataSourceId: String): AppResult<Unit>
 }

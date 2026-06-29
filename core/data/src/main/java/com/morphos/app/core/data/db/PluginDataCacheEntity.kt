@@ -1,28 +1,30 @@
 package com.morphos.app.core.data.db
 
-import androidx.room.Entity
-import androidx.room.Dao
-import androidx.room.Query
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
+import androidx.room.*
 
-@Entity(tableName = "plugin_data_cache", primaryKeys = ["pluginId", "widgetId"])
+@Entity(
+    tableName = "plugin_data_cache",
+    indices = [Index("dataSourceId", unique = true)]
+)
 data class PluginDataCacheEntity(
+    @PrimaryKey val dataSourceId: String,
     val pluginId: String,
-    val widgetId: String,
-    val dataJson: String,
-    val cachedAt: Long,
+    val rawValue: String,
+    val fetchedAt: Long,
     val ttlSeconds: Int
 )
 
 @Dao
 interface PluginDataCacheDao {
-    @Query("SELECT * FROM plugin_data_cache WHERE pluginId = :pluginId AND widgetId = :widgetId")
-    suspend fun getCache(pluginId: String, widgetId: String): PluginDataCacheEntity?
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun cacheData(cache: PluginDataCacheEntity)
+    suspend fun insert(entity: PluginDataCacheEntity)
 
-    @Query("DELETE FROM plugin_data_cache WHERE pluginId = :pluginId AND widgetId = :widgetId")
-    suspend fun clearCache(pluginId: String, widgetId: String)
+    @Query("SELECT * FROM plugin_data_cache WHERE dataSourceId = :id")
+    suspend fun getBySourceId(id: String): PluginDataCacheEntity?
+
+    @Query("DELETE FROM plugin_data_cache WHERE dataSourceId = :id")
+    suspend fun invalidate(id: String)
+
+    @Query("DELETE FROM plugin_data_cache WHERE fetchedAt + (ttlSeconds * 1000) < :now")
+    suspend fun pruneExpired(now: Long)
 }

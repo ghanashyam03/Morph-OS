@@ -1,6 +1,7 @@
 package com.morphos.app.core.data.di
 
 import com.morphos.app.core.data.plugin.*
+import com.morphos.app.core.domain.repository.DataPlugin
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

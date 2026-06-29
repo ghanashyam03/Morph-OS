@@ -2,20 +2,17 @@ package com.morphos.app.core.domain.model
 
 import kotlinx.serialization.Serializable
 
-enum class RefreshType {
-    PERIODIC, EVENT_DRIVEN, MANUAL, HYBRID
-}
+enum class RefreshType { PERIODIC, EVENT_DRIVEN, MANUAL, HYBRID }
 
-@Serializable
-data class TriggerEvent(
-    val eventType: String,
-    val parameters: Map<String, String>
-)
+enum class TriggerEvent {
+    USER_UNLOCK, CALENDAR_EVENT_START, BATTERY_LOW,
+    CONNECTIVITY_CHANGED, LOCATION_CHANGED, TIME_THRESHOLD
+}
 
 @Serializable
 data class RefreshPolicy(
     val type: RefreshType,
-    val minIntervalSeconds: Int,
-    val maxIntervalSeconds: Int,
-    val triggerEvents: List<TriggerEvent>
+    val minIntervalSeconds: Int = 1800,
+    val maxIntervalSeconds: Int = 86400,
+    val triggerEvents: List<TriggerEvent> = emptyList()
 )

@@ -8,6 +8,7 @@ data class SlotConfig(
     val contentType: ContentType,
     val dataSourceId: String,
     val transformExpression: String? = null,
-    val fallbackValue: String,
-    val maxLength: Int
+    val fallbackValue: String = "",
+    val maxLength: Int = 100,
+    val priority: Int = 0
 )

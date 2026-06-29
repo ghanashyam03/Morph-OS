@@ -1,32 +1,34 @@
 package com.morphos.app.core.data.db
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-import androidx.room.Dao
-import androidx.room.Query
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
+import androidx.room.*
 import kotlinx.coroutines.flow.Flow
 
-@Entity(tableName = "notification_log")
+@Entity(
+    tableName = "notification_log",
+    indices = [Index("postedAt")]
+)
 data class NotificationLogEntity(
-    @PrimaryKey val key: String,
+    @PrimaryKey val id: String,
     val packageName: String,
-    val title: String,
-    val text: String,
-    val postTime: Long,
-    val priorityScore: Float,
-    val isSilent: Boolean
+    val appName: String,
+    val title: String?,
+    val text: String?,
+    val priority: String,
+    val postedAt: Long,
+    val isDismissed: Boolean = false
 )
 
 @Dao
 interface NotificationLogDao {
-    @Query("SELECT * FROM notification_log ORDER BY postTime DESC")
-    fun getNotifications(): Flow<List<NotificationLogEntity>>
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertNotification(notification: NotificationLogEntity)
+    suspend fun insert(entity: NotificationLogEntity)
 
-    @Query("DELETE FROM notification_log")
-    suspend fun clearNotifications()
+    @Query("SELECT * FROM notification_log WHERE isDismissed = 0 ORDER BY postedAt DESC LIMIT 20")
+    fun getActivePrioritized(): Flow<List<NotificationLogEntity>>
+
+    @Query("UPDATE notification_log SET isDismissed = 1 WHERE id = :id")
+    suspend fun dismiss(id: String)
+
+    @Query("DELETE FROM notification_log WHERE postedAt < :cutoff")
+    suspend fun pruneOld(cutoff: Long)
 }

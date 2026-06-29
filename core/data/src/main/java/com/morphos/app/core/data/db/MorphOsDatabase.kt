@@ -2,6 +2,7 @@ package com.morphos.app.core.data.db
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 
 @Database(
     entities = [
@@ -15,6 +16,7 @@ import androidx.room.RoomDatabase
     version = 1,
     exportSchema = false
 )
+@TypeConverters(TypeConverters::class)
 abstract class MorphOsDatabase : RoomDatabase() {
     abstract fun widgetDao(): WidgetDao
     abstract fun shortTermEventDao(): ShortTermEventDao

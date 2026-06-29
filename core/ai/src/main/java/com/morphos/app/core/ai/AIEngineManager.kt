@@ -9,7 +9,28 @@ class AIEngineManager @Inject constructor(
     private val onnxEmbeddingEngine: OnnxEmbeddingEngine,
     private val cloudAIEngine: CloudAIEngine
 ) {
-    suspend fun processInference(request: InferenceRequest): InferenceResult {
-        TODO("Not yet implemented")
+
+    fun isTier0Available(): Boolean {
+        return llamaCppEngine.isTier0Loaded()
+    }
+
+    fun isTier1Available(): Boolean {
+        return llamaCppEngine.isTier1Loaded()
+    }
+
+    suspend fun inferTier0(prompt: String): String {
+        return llamaCppEngine.inferTier0(prompt)
+    }
+
+    suspend fun inferTier1(prompt: String): String {
+        return llamaCppEngine.inferTier1(prompt)
+    }
+
+    suspend fun inferTier2(prompt: String): String {
+        return cloudAIEngine.inferTier2(prompt)
+    }
+
+    fun computeEmbedding(text: String): FloatArray {
+        return onnxEmbeddingEngine.computeEmbedding(text)
     }
 }

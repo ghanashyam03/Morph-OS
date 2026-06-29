@@ -4,7 +4,12 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class MemoryProfile(
-    val userPreferences: Map<String, String>,
-    val summarizedBehaviorPatterns: List<String>,
-    val engagementHistory: Map<String, Float>
+    val preferredWidgetTypes: List<String> = emptyList(),
+    val activeHours: List<Int> = emptyList(),   // hours of day user is active
+    val preferredDataSources: List<String> = emptyList(),
+    val dislikedContentTypes: List<String> = emptyList(),
+    val notificationPreference: NotificationPreference = NotificationPreference.MODERATE,
+    val lastUpdated: Long = 0L
 )
+
+enum class NotificationPreference { MINIMAL, MODERATE, VERBOSE }

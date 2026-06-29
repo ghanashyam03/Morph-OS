@@ -1,15 +1,19 @@
 package com.morphos.app.core.domain.model
 
-data class ContentCandidate(
-    val slotId: String,
-    val title: String,
-    val value: String,
-    val icon: String?,
-    val timestamp: Long,
-    val sourcePluginId: String
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class RankedContent(
+    val contentId: String,
+    val score: Float,
+    val metadata: Map<String, String> = emptyMap()
 )
 
-data class RankedContent(
-    val candidate: ContentCandidate,
-    val score: Float
+@Serializable
+data class ContentCandidate(
+    val contentId: String,
+    val recency: Long,
+    val engagementCount: Int,
+    val contextMatchScore: Float,
+    val metadata: Map<String, String> = emptyMap()
 )

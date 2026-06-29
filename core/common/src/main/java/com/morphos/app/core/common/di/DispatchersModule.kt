@@ -14,6 +14,6 @@ object DispatchersModule {
     @Provides
     @Singleton
     fun provideAppDispatchers(): AppDispatchers {
-        TODO("Not yet implemented")
+        return AppDispatchers()
     }
 }
