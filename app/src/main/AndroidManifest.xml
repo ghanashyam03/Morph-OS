@@ -83,11 +83,13 @@
             android:exported="false"
             tools:node="merge">
             <meta-data
-                android:name="com.morphos.app.initializer.WorkSchedulerInitializer"
-                android:value="androidx.startup" />
-            <meta-data
                 android:name="com.morphos.app.initializer.CoilInitializer"
                 android:value="androidx.startup" />
+            <!-- Disable auto-init; we use Configuration.Provider in Application -->
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
         </provider>
 
     </application>

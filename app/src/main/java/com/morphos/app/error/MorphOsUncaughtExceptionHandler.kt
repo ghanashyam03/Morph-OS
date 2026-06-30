@@ -19,14 +19,14 @@ class MorphOsUncaughtExceptionHandler(
             val crashDir = File(context.filesDir, "crashes").also { it.mkdirs() }
             val timestamp = System.currentTimeMillis()
             val crashFile = File(crashDir, "crash_$timestamp.txt")
-            crashFile.writeText(buildCrashReport(throwable, timestamp))
+            crashFile.writeText(buildCrashReport(thread, throwable, timestamp))
         } catch (e: Exception) {
             // Ignore failure during crash logging
         }
         defaultHandler?.uncaughtException(thread, throwable)
     }
 
-    private fun buildCrashReport(throwable: Throwable, timestamp: Long): String {
+    private fun buildCrashReport(thread: Thread, throwable: Throwable, timestamp: Long): String {
         val sw = StringWriter()
         throwable.printStackTrace(PrintWriter(sw))
         val stackTrace = sw.toString()

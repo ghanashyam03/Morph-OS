@@ -2,6 +2,7 @@ package com.morphos.app.initializer
 
 import android.content.Context
 import androidx.startup.Initializer
+import androidx.work.WorkManagerInitializer
 import com.morphos.app.core.data.worker.WorkScheduler
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -19,7 +20,9 @@ class WorkSchedulerInitializer : Initializer<WorkScheduler> {
         return scheduler
     }
 
-    override fun dependencies(): List<Class<out Initializer<*>>> = emptyList()
+    override fun dependencies(): List<Class<out Initializer<*>>> = listOf(
+        WorkManagerInitializer::class.java
+    )
 
     @EntryPoint
     @InstallIn(SingletonComponent::class)

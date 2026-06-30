@@ -2,36 +2,40 @@ package com.morphos.app
 
 import android.app.Application
 import android.os.StrictMode
-import androidx.appcompat.app.AppCompatDelegate
+import androidx.hilt.work.HiltWorkerFactory
+import androidx.work.Configuration
 import com.morphos.app.core.data.db.MorphOsDatabase
+import com.morphos.app.core.data.worker.WorkScheduler
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.*
 import timber.log.Timber
 import javax.inject.Inject
 
 @HiltAndroidApp
-class MorphOsApplication : Application() {
+class MorphOsApplication : Application(), Configuration.Provider {
 
-    @Inject
-    lateinit var database: MorphOsDatabase
+    @Inject lateinit var database: MorphOsDatabase
+    @Inject lateinit var workerFactory: HiltWorkerFactory
+    @Inject lateinit var workScheduler: WorkScheduler
+
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder()
+            .setWorkerFactory(workerFactory)
+            .build()
 
     override fun onCreate() {
         super.onCreate()
-        
-        val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
+
         Thread.setDefaultUncaughtExceptionHandler(
-            com.morphos.app.error.MorphOsUncaughtExceptionHandler(this, defaultHandler)
+            com.morphos.app.error.MorphOsUncaughtExceptionHandler(
+                this, Thread.getDefaultUncaughtExceptionHandler()
+            )
         )
-        
+
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
-            
-            // Enable StrictMode in DEBUG
             StrictMode.setThreadPolicy(
-                StrictMode.ThreadPolicy.Builder()
-                    .detectAll()
-                    .penaltyLog()
-                    .build()
+                StrictMode.ThreadPolicy.Builder().detectAll().penaltyLog().build()
             )
             StrictMode.setVmPolicy(
                 StrictMode.VmPolicy.Builder()
@@ -41,18 +45,12 @@ class MorphOsApplication : Application() {
                     .build()
             )
         }
-        
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
 
-        // Database Pre-warm on IO thread
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
-            try {
-                database.query("SELECT 1", null).use { cursor ->
-                    cursor.moveToFirst()
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "MorphOsApplication: Database pre-warm failed")
-            }
+            runCatching { database.openHelper.writableDatabase }
+                .onFailure { Timber.e(it, "Database pre-warm failed") }
+            runCatching { workScheduler.scheduleAll() }
+                .onFailure { Timber.e(it, "WorkScheduler failed") }
         }
     }
 }

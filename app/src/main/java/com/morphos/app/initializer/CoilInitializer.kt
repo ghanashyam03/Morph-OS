@@ -7,6 +7,8 @@ import coil3.SingletonImageLoader
 import coil3.disk.DiskCache
 import coil3.memory.MemoryCache
 
+import okio.Path.Companion.toPath
+
 class CoilInitializer : Initializer<ImageLoader> {
     override fun create(context: Context): ImageLoader {
         val loader = ImageLoader.Builder(context)
@@ -17,11 +19,10 @@ class CoilInitializer : Initializer<ImageLoader> {
             }
             .diskCache {
                 DiskCache.Builder()
-                    .directory(context.cacheDir.resolve("coil_cache"))
+                    .directory(context.cacheDir.resolve("coil_cache").absolutePath.toPath())
                     .maxSizeBytes(50L * 1024 * 1024)
                     .build()
             }
-            .respectCacheHeaders(false)
             .build()
 
         SingletonImageLoader.setSafe { loader }

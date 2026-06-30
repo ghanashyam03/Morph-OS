@@ -18,15 +18,15 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.serialization.Serializable
 
 sealed interface MorphOsRoute {
-    @Serializable object Onboarding
-    @Serializable object Dashboard
-    @Serializable object WidgetCreator
-    @Serializable data class WidgetEditor(val widgetId: String)
-    @Serializable object Settings
-    @Serializable object Privacy
-    @Serializable object AiSettings
-    @Serializable object Permissions
-    @Serializable object About
+    @Serializable object Onboarding : MorphOsRoute
+    @Serializable object Dashboard : MorphOsRoute
+    @Serializable object WidgetCreator : MorphOsRoute
+    @Serializable data class WidgetEditor(val widgetId: String) : MorphOsRoute
+    @Serializable object Settings : MorphOsRoute
+    @Serializable object Privacy : MorphOsRoute
+    @Serializable object AiSettings : MorphOsRoute
+    @Serializable object Permissions : MorphOsRoute
+    @Serializable object About : MorphOsRoute
 }
 
 @EntryPoint
