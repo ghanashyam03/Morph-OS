@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.morphos.app.core.common.AppDispatchers
 import com.morphos.app.core.common.AppResult
-import com.morphos.app.core.common.NoParams
+import com.morphos.app.core.domain.usecase.NoParams
 import com.morphos.app.core.ai.ModelConfig
 import com.morphos.app.core.ai.ModelDownloadManager
 import com.morphos.app.core.domain.model.NotificationPreference
@@ -138,7 +138,7 @@ class SettingsViewModel @Inject constructor(
                 name = "gemma3-1b",
                 filename = "gemma-3-1b-it-q4_k_m.gguf",
                 url = "https://huggingface.co/google/gemma-3-1b-it-GGUF/resolve/main/gemma-3-1b-it-q4_k_m.gguf",
-                sha256 = "mock_sha",
+                sha256 = "placeholder",
                 sizeBytes = 900_000_000L
             )
             modelDownloadManager.downloadModel(config)

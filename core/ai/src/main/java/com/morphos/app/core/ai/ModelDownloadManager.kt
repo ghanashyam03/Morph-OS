@@ -2,7 +2,6 @@ package com.morphos.app.core.ai
 
 import android.content.Context
 import androidx.work.*
-import com.morphos.app.core.data.worker.ModelDownloadWorker
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -23,11 +22,14 @@ class ModelDownloadManager @Inject constructor(
             "sha256" to config.sha256
         )
 
-        val request = OneTimeWorkRequestBuilder<ModelDownloadWorker>()
+        @Suppress("UNCHECKED_CAST")
+        val workerClass = Class.forName("com.morphos.app.core.data.worker.ModelDownloadWorker") as Class<out ListenableWorker>
+        
+        val request = OneTimeWorkRequest.Builder(workerClass)
             .setInputData(data)
             .setConstraints(
                 Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.UNMETERED)
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
                     .build()
             )
             .build()

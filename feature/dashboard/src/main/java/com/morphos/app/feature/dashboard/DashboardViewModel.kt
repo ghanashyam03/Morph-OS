@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.morphos.app.core.common.AppDispatchers
 import com.morphos.app.core.common.AppResult
-import com.morphos.app.core.common.NoParams
+import com.morphos.app.core.domain.usecase.NoParams
 import com.morphos.app.core.domain.agent.AgentOrchestrator
 import com.morphos.app.core.domain.model.ShortTermEvent
 import com.morphos.app.core.domain.model.ShortTermEventType
@@ -43,6 +43,7 @@ class DashboardViewModel @Inject constructor(
     }
 
     init {
+        agentOrchestrator.start()
         processIntent(DashboardIntent.LoadWidgets)
         
         // Observe context changes
