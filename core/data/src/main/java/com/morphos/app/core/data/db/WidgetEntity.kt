@@ -36,4 +36,10 @@ interface WidgetDao {
 
     @Query("SELECT * FROM widgets WHERE templateId = :templateId")
     suspend fun getByTemplate(templateId: String): List<WidgetEntity>
+
+    @Transaction
+    suspend fun deleteWidgetWithCache(id: String, cacheDao: PluginDataCacheDao) {
+        deleteWidget(id)
+        cacheDao.invalidate(id)
+    }
 }

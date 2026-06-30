@@ -35,4 +35,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindSettingsRepository(impl: SettingsRepositoryImpl): SettingsRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindConnectivityObserver(impl: com.morphos.app.core.common.NetworkConnectivityObserver): com.morphos.app.core.common.ConnectivityObserver
 }

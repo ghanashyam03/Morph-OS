@@ -8,6 +8,7 @@ import com.morphos.app.core.data.db.*
 import com.morphos.app.core.domain.repository.SettingsRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.withTimeout
 
 @HiltWorker
 class OldMemoryPruneWorker @AssistedInject constructor(
@@ -22,15 +23,17 @@ class OldMemoryPruneWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result {
         return try {
-            val retentionDays = settingsRepository.getRetentionDays()
-            val cutoff = System.currentTimeMillis() - (retentionDays * 86400000L)
+            withTimeout(30_000L) {
+                val retentionDays = settingsRepository.getRetentionDays()
+                val cutoff = System.currentTimeMillis() - (retentionDays * 86400000L)
 
-            shortTermEventDao.deleteOlderThan(cutoff)
-            longTermMemoryDao.pruneOld(cutoff)
-            notificationLogDao.pruneOld(cutoff)
-            agentTaskDao.pruneCompleted(cutoff)
+                shortTermEventDao.deleteOlderThan(cutoff)
+                longTermMemoryDao.pruneOld(cutoff)
+                notificationLogDao.pruneOld(cutoff)
+                agentTaskDao.pruneCompleted(cutoff)
 
-            Result.success()
+                Result.success()
+            }
         } catch (e: Exception) {
             Result.failure()
         }

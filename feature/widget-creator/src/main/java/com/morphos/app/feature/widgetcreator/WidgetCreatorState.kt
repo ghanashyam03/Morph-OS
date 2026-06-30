@@ -5,6 +5,9 @@ import com.morphos.app.core.domain.model.WidgetIntent
 import com.morphos.app.core.domain.model.WidgetPlan
 import com.morphos.app.core.domain.model.WidgetSizeClass
 
+import androidx.compose.runtime.Stable
+
+@Stable
 data class WidgetCreatorState(
     val step: CreatorStep = CreatorStep.NL_INPUT,
     val rawInput: String = "",

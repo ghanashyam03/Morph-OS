@@ -13,6 +13,7 @@ import com.morphos.app.core.domain.usecase.widget.GetAllWidgetsUseCase
 import com.morphos.app.core.domain.usecase.widget.RecordUserEventUseCase
 import com.morphos.app.core.widget.GlanceWidgetRenderer
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -25,6 +26,7 @@ class DashboardViewModel @Inject constructor(
     private val recordUserEventUseCase: RecordUserEventUseCase,
     private val agentOrchestrator: AgentOrchestrator,
     private val glanceWidgetRenderer: GlanceWidgetRenderer,
+    private val connectivityObserver: com.morphos.app.core.common.ConnectivityObserver,
     private val dispatchers: AppDispatchers
 ) : ViewModel() {
 
@@ -34,20 +36,34 @@ class DashboardViewModel @Inject constructor(
     private val _effects = MutableSharedFlow<DashboardEffect>(extraBufferCapacity = 4)
     val effects: SharedFlow<DashboardEffect> = _effects.asSharedFlow()
 
+    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        viewModelScope.launch(dispatchers.main) {
+            _effects.emit(DashboardEffect.ShowError(throwable.message ?: "Unknown error occurred"))
+        }
+    }
+
     init {
         processIntent(DashboardIntent.LoadWidgets)
         
         // Observe context changes
-        viewModelScope.launch(dispatchers.io) {
+        viewModelScope.launch(dispatchers.io + exceptionHandler) {
             agentOrchestrator.getContextFlow().collect { ctx ->
                 _state.update { it.copy(contextSnapshot = ctx) }
             }
         }
         
         // Observe notifications
-        viewModelScope.launch(dispatchers.io) {
+        viewModelScope.launch(dispatchers.io + exceptionHandler) {
             agentOrchestrator.getNotificationFlow().collect { notifs ->
                 _state.update { it.copy(notifications = notifs) }
+            }
+        }
+
+        // Observe connectivity
+        viewModelScope.launch(dispatchers.io + exceptionHandler) {
+            connectivityObserver.observe().collect { status ->
+                val offline = status != com.morphos.app.core.common.ConnectivityObserver.Status.Available
+                _state.update { it.copy(isOffline = offline) }
             }
         }
     }
@@ -59,17 +75,17 @@ class DashboardViewModel @Inject constructor(
             is DashboardIntent.PinWidgetToHomeScreen -> pinWidget(intent.widgetId)
             DashboardIntent.RefreshAll -> refreshAll()
             is DashboardIntent.RecordWidgetTap -> recordTap(intent.widgetId)
-            DashboardIntent.NavigateToWidgetCreator -> viewModelScope.launch {
+            DashboardIntent.NavigateToWidgetCreator -> viewModelScope.launch(dispatchers.main + exceptionHandler) {
                 _effects.emit(DashboardEffect.NavigateToWidgetCreator)
             }
-            is DashboardIntent.NavigateToWidgetEditor -> viewModelScope.launch {
+            is DashboardIntent.NavigateToWidgetEditor -> viewModelScope.launch(dispatchers.main + exceptionHandler) {
                 _effects.emit(DashboardEffect.NavigateToWidgetEditor(intent.widgetId))
             }
         }
     }
 
     private fun loadWidgets() {
-        viewModelScope.launch(dispatchers.io) {
+        viewModelScope.launch(dispatchers.io + exceptionHandler) {
             getAllWidgetsUseCase(NoParams).collect { result ->
                 when (result) {
                     is AppResult.Success -> {
@@ -98,25 +114,25 @@ class DashboardViewModel @Inject constructor(
     }
 
     private fun deleteWidget(widgetId: String) {
-        viewModelScope.launch(dispatchers.io) {
+        viewModelScope.launch(dispatchers.io + exceptionHandler) {
             deleteWidgetUseCase(widgetId)
         }
     }
 
     private fun pinWidget(widgetId: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(dispatchers.main + exceptionHandler) {
             _effects.emit(DashboardEffect.ShowPinInstructions(widgetId))
         }
     }
 
     private fun refreshAll() {
-        viewModelScope.launch(dispatchers.io) {
+        viewModelScope.launch(dispatchers.io + exceptionHandler) {
             glanceWidgetRenderer.renderAllWidgets()
         }
     }
 
     private fun recordTap(widgetId: String) {
-        viewModelScope.launch(dispatchers.io) {
+        viewModelScope.launch(dispatchers.io + exceptionHandler) {
             recordUserEventUseCase(
                 ShortTermEvent(
                     id = UUID.randomUUID().toString(),

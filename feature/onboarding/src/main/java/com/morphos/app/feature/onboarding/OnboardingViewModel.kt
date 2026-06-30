@@ -7,10 +7,14 @@ import com.morphos.app.core.ai.ModelConfig
 import com.morphos.app.core.ai.ModelDownloadManager
 import com.morphos.app.core.domain.repository.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+import androidx.compose.runtime.Stable
+
+@Stable
 data class OnboardingState(
     val currentPage: Int = 0,
     val totalPages: Int = 4,
@@ -45,6 +49,10 @@ class OnboardingViewModel @Inject constructor(
     private val _effects = MutableSharedFlow<OnboardingEffect>(extraBufferCapacity = 1)
     val effects: SharedFlow<OnboardingEffect> = _effects.asSharedFlow()
 
+    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        _state.update { it.copy(isCompleting = false, isAiDownloadStarted = false) }
+    }
+
     fun processIntent(intent: OnboardingIntent) {
         when (intent) {
             OnboardingIntent.NextPage -> {
@@ -76,13 +84,13 @@ class OnboardingViewModel @Inject constructor(
                 complete()
             }
             is OnboardingIntent.GrantPermission -> {
-                // Handled in UI, can track state here if needed
+                // Handled in UI
             }
         }
     }
 
     private fun startDownload() {
-        viewModelScope.launch(dispatchers.io) {
+        viewModelScope.launch(dispatchers.io + exceptionHandler) {
             val config = ModelConfig(
                 name = "smollm2-135m-q4",
                 filename = "smollm2-135m-q4.gguf",
@@ -106,7 +114,7 @@ class OnboardingViewModel @Inject constructor(
     }
 
     private fun complete() {
-        viewModelScope.launch(dispatchers.io) {
+        viewModelScope.launch(dispatchers.io + exceptionHandler) {
             _state.update { it.copy(isCompleting = true) }
             settingsRepository.setOnboardingComplete()
             _effects.emit(OnboardingEffect.NavigateToDashboard)

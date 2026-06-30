@@ -39,6 +39,7 @@ dependencies {
 
     implementation(libs.navigation.compose)
     implementation(libs.timber)
+    implementation(libs.android.startup)
     
     debugImplementation(libs.leakcanary)
 }

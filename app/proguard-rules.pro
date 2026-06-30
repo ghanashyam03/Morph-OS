@@ -42,3 +42,8 @@
 # Glance AppWidget rules
 -keep class * extends androidx.glance.appwidget.GlanceAppWidget { *; }
 -keep class * extends androidx.glance.appwidget.GlanceAppWidgetReceiver { *; }
+
+# MorphOS Additional Keep Rules
+-keep class com.morphos.app.core.widget.MorphOsWidgetState { *; }
+-keep class com.morphos.app.core.data.db.** { *; }
+-keep class * extends dagger.hilt.internal.GeneratedComponent { *; }

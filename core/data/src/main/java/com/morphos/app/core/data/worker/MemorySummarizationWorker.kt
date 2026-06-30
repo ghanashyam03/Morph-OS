@@ -8,6 +8,7 @@ import com.morphos.app.core.common.AppResult
 import com.morphos.app.core.domain.agent.AgentOrchestrator
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.withTimeout
 
 @HiltWorker
 class MemorySummarizationWorker @AssistedInject constructor(
@@ -18,11 +19,13 @@ class MemorySummarizationWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result {
         return try {
-            val result = agentOrchestrator.triggerMemorySummarization()
-            if (result is AppResult.Success) {
-                Result.success()
-            } else {
-                Result.failure()
+            withTimeout(30_000L) {
+                val result = agentOrchestrator.triggerMemorySummarization()
+                if (result is AppResult.Success) {
+                    Result.success()
+                } else {
+                    Result.failure()
+                }
             }
         } catch (e: Exception) {
             Result.failure()

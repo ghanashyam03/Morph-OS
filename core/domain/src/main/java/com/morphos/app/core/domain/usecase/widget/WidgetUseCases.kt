@@ -24,7 +24,11 @@ class CreateWidgetUseCase @Inject constructor(
     private val widgetRepository: WidgetRepository
 ) : UseCase<CreateWidgetParams, WidgetConfig>() {
     override suspend fun invoke(params: CreateWidgetParams): AppResult<WidgetConfig> = safeCall {
-        require(params.plan.suggestedName.isNotBlank()) { "Suggested name cannot be blank" }
+        val suggestedName = if (params.plan.suggestedName.isBlank()) {
+            "Widget_${params.plan.selectedTemplateId}"
+        } else {
+            params.plan.suggestedName
+        }
         require(params.plan.selectedTemplateId.isNotBlank()) { "Template ID cannot be blank" }
 
         val id = UUID.randomUUID().toString()
@@ -50,7 +54,7 @@ class CreateWidgetUseCase @Inject constructor(
 
         val config = WidgetConfig(
             id = id,
-            name = params.plan.suggestedName,
+            name = suggestedName,
             description = params.plan.suggestedDescription,
             templateId = params.plan.selectedTemplateId,
             sizeClass = params.sizeClass,

@@ -11,6 +11,7 @@ import com.morphos.app.core.domain.usecase.widget.CreateWidgetUseCase
 import com.morphos.app.core.domain.usecase.widget.GenerateWidgetPlanUseCase
 import com.morphos.app.core.domain.usecase.widget.ParseUserIntentUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -35,6 +36,13 @@ class WidgetCreatorViewModel @Inject constructor(
     private val _effects = MutableSharedFlow<WidgetCreatorEffect>(extraBufferCapacity = 2)
     val effects: SharedFlow<WidgetCreatorEffect> = _effects.asSharedFlow()
 
+    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        _state.update { it.copy(isProcessing = false) }
+        viewModelScope.launch {
+            _effects.emit(WidgetCreatorEffect.ShowError(throwable.message ?: "Unknown error occurred"))
+        }
+    }
+
     fun processIntent(intent: WidgetCreatorIntent) {
         when (intent) {
             is WidgetCreatorIntent.InputChanged -> _state.update { it.copy(rawInput = intent.text, error = null) }
@@ -46,14 +54,14 @@ class WidgetCreatorViewModel @Inject constructor(
             is WidgetCreatorIntent.UpdateName -> _state.update { it.copy(widgetName = intent.name) }
             WidgetCreatorIntent.ConfirmWidget -> confirmWidget()
             WidgetCreatorIntent.Back -> handleBack()
-            WidgetCreatorIntent.Dismiss -> viewModelScope.launch {
+            WidgetCreatorIntent.Dismiss -> viewModelScope.launch(dispatchers.main + exceptionHandler) {
                 _effects.emit(WidgetCreatorEffect.NavigateToDashboard)
             }
         }
     }
 
     private fun submitInput() {
-        viewModelScope.launch(dispatchers.io) {
+        viewModelScope.launch(dispatchers.io + exceptionHandler) {
             val input = _state.value.rawInput.trim()
             if (input.isBlank()) {
                 _state.update { it.copy(error = "Please describe the widget you want") }
@@ -98,7 +106,7 @@ class WidgetCreatorViewModel @Inject constructor(
     }
 
     private fun confirmWidget() {
-        viewModelScope.launch(dispatchers.io) {
+        viewModelScope.launch(dispatchers.io + exceptionHandler) {
             val state = _state.value
             val plan = state.generatedPlan ?: return@launch
             val finalPlan = plan.copy(

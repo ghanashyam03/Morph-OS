@@ -58,7 +58,9 @@ class NotificationAgentImpl @Inject constructor(
                     }
                     notif.copy(priority = newPriority)
                 }
-                _notifications.value = processed.filter { it.priority != NotificationPriority.SUPPRESSED }
+                _notifications.value = processed
+                    .filter { it.priority != NotificationPriority.SUPPRESSED }
+                    .sortedBy { it.priority.ordinal }
             }
         }
     }

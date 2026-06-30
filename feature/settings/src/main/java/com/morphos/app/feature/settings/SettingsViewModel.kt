@@ -14,10 +14,14 @@ import com.morphos.app.core.domain.usecase.widget.ClearAllMemoryUseCase
 import com.morphos.app.core.domain.usecase.widget.GetUserPreferencesUseCase
 import com.morphos.app.core.domain.usecase.widget.UpdateUserPreferencesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+import androidx.compose.runtime.Stable
+
+@Stable
 data class SettingsState(
     val preferences: UserPreferences = UserPreferences(),
     val isLoading: Boolean = true,
@@ -51,8 +55,18 @@ class SettingsViewModel @Inject constructor(
     private val _state = MutableStateFlow(SettingsState())
     val state: StateFlow<SettingsState> = _state.asStateFlow()
 
+    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        _state.update {
+            it.copy(
+                isLoading = false,
+                isDownloadingTier1 = false,
+                message = throwable.message ?: "Unknown error occurred"
+            )
+        }
+    }
+
     init {
-        viewModelScope.launch(dispatchers.io) {
+        viewModelScope.launch(dispatchers.io + exceptionHandler) {
             getUserPreferencesUseCase(NoParams).collect { result ->
                 when (result) {
                     is AppResult.Success -> {
@@ -82,7 +96,7 @@ class SettingsViewModel @Inject constructor(
                 downloadTier1()
             }
             SettingsIntent.ClearAllMemory -> {
-                viewModelScope.launch(dispatchers.io) {
+                viewModelScope.launch(dispatchers.io + exceptionHandler) {
                     when (val result = clearAllMemoryUseCase(NoParams)) {
                         is AppResult.Success -> {
                             _state.update { it.copy(message = "All memory cleared successfully") }
@@ -104,7 +118,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     private fun updatePrefs(transform: (UserPreferences) -> UserPreferences) {
-        viewModelScope.launch(dispatchers.io) {
+        viewModelScope.launch(dispatchers.io + exceptionHandler) {
             val updated = transform(_state.value.preferences)
             when (val result = updateUserPreferencesUseCase(updated)) {
                 is AppResult.Success -> {
@@ -119,7 +133,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     private fun downloadTier1() {
-        viewModelScope.launch(dispatchers.io) {
+        viewModelScope.launch(dispatchers.io + exceptionHandler) {
             val config = ModelConfig(
                 name = "gemma3-1b",
                 filename = "gemma-3-1b-it-q4_k_m.gguf",

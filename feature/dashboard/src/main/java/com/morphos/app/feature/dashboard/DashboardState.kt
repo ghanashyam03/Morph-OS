@@ -5,6 +5,9 @@ import com.morphos.app.core.domain.model.MemoryProfile
 import com.morphos.app.core.domain.model.PrioritizedNotification
 import com.morphos.app.core.domain.model.WidgetConfig
 
+import androidx.compose.runtime.Stable
+
+@Stable
 data class DashboardState(
     val widgets: List<WidgetConfig> = emptyList(),
     val isLoading: Boolean = true,
@@ -12,7 +15,8 @@ data class DashboardState(
     val memoryProfile: MemoryProfile? = null,
     val notifications: List<PrioritizedNotification> = emptyList(),
     val error: String? = null,
-    val showEmptyState: Boolean = false
+    val showEmptyState: Boolean = false,
+    val isOffline: Boolean = false
 )
 
 sealed class DashboardIntent {

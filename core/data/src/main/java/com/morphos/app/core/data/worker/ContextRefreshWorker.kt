@@ -8,6 +8,7 @@ import com.morphos.app.core.common.AppResult
 import com.morphos.app.core.domain.agent.ContextAgent
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.withTimeout
 
 @HiltWorker
 class ContextRefreshWorker @AssistedInject constructor(
@@ -18,11 +19,13 @@ class ContextRefreshWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result {
         return try {
-            val result = contextAgent.refresh()
-            if (result is AppResult.Error) {
-                if (runAttemptCount < 2) Result.retry() else Result.failure()
-            } else {
-                Result.success()
+            withTimeout(30_000L) {
+                val result = contextAgent.refresh()
+                if (result is AppResult.Error) {
+                    if (runAttemptCount < 2) Result.retry() else Result.failure()
+                } else {
+                    Result.success()
+                }
             }
         } catch (e: Exception) {
             if (runAttemptCount < 2) Result.retry() else Result.failure()

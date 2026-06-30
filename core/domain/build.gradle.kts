@@ -7,4 +7,6 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
     compileOnly("javax.inject:javax.inject:1")
+
+    testImplementation(libs.bundles.testing.unit)
 }

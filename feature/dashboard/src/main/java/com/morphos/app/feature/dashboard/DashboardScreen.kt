@@ -99,24 +99,48 @@ fun DashboardScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.surface,
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
+        ) {
+            AnimatedVisibility(
+                visible = state.isOffline,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.errorContainer)
+                        .padding(vertical = 8.dp, horizontal = 16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "You are offline. AI plans and network updates are currently paused.",
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.surface,
+                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
+                            )
                         )
                     )
-                )
-        ) {
-            when {
+            ) {
+                when {
                 state.isLoading -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
+                    ShimmerDashboardLoading()
                 }
                 state.showEmptyState -> {
                     DashboardEmptyState(onCreateWidget = {
@@ -198,16 +222,32 @@ fun DashboardContent(
         }
 
         // Widgets
-        items(state.widgets) { widget ->
-            WidgetCard(
-                config = widget,
-                onTap = {
-                    onIntent(DashboardIntent.RecordWidgetTap(widget.id))
-                    onIntent(DashboardIntent.NavigateToWidgetEditor(widget.id))
-                },
-                onDelete = { onDeleteWidgetClick(widget) },
-                onPin = { onIntent(DashboardIntent.PinWidgetToHomeScreen(widget.id)) }
-            )
+        items(state.widgets, key = { it.id }) { widget ->
+            val index = state.widgets.indexOf(widget)
+            val animationsEnabled = com.morphos.app.core.common.LocalAnimationsEnabled.current
+            var visible by remember { mutableStateOf(!animationsEnabled) }
+            LaunchedEffect(Unit) {
+                if (animationsEnabled) {
+                    kotlinx.coroutines.delay(index * 50L)
+                    visible = true
+                }
+            }
+            AnimatedVisibility(
+                visible = visible,
+                enter = fadeIn() + slideInVertically(initialOffsetY = { it / 4 }),
+                exit = fadeOut() + shrinkVertically(),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                WidgetCard(
+                    config = widget,
+                    onTap = {
+                        onIntent(DashboardIntent.RecordWidgetTap(widget.id))
+                        onIntent(DashboardIntent.NavigateToWidgetEditor(widget.id))
+                    },
+                    onDelete = { onDeleteWidgetClick(widget) },
+                    onPin = { onIntent(DashboardIntent.PinWidgetToHomeScreen(widget.id)) }
+                )
+            }
         }
     }
 }
@@ -255,14 +295,27 @@ fun WidgetCard(
     onPin: () -> Unit
 ) {
     var expandedMenu by remember { mutableStateOf(false) }
+    val interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed && com.morphos.app.core.common.LocalAnimationsEnabled.current) 0.96f else 1.0f,
+        label = "card_scale"
+    )
 
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
+            .androidx.compose.ui.draw.scale(scale)
             .combinedClickable(
+                interactionSource = interactionSource,
+                indication = androidx.compose.foundation.LocalIndication.current,
                 onClick = onTap,
                 onLongClick = { expandedMenu = true }
-            ),
+            )
+            .androidx.compose.ui.semantics.semantics(mergeDescendants = true) {
+                androidx.compose.ui.semantics.contentDescription = "Widget card: ${config.name}. Double tap to open."
+                androidx.compose.ui.semantics.role = androidx.compose.ui.semantics.Role.Button
+            },
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -500,6 +553,60 @@ fun PinInstructionsBottomSheet(
                 Text("Got It")
             }
             Spacer(modifier = Modifier.height(16.dp))
+        }
+    }
+}
+
+@Composable
+fun ShimmerBrush(): Brush {
+    val transition = rememberInfiniteTransition(label = "shimmer")
+    val translateAnim by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1200, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "shimmer_translate"
+    )
+
+    val colors = listOf(
+        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f),
+        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+    )
+
+    return Brush.linearGradient(
+        colors = colors,
+        start = androidx.compose.ui.geometry.Offset(translateAnim - 300f, translateAnim - 300f),
+        end = androidx.compose.ui.geometry.Offset(translateAnim, translateAnim)
+    )
+}
+
+@Composable
+fun ShimmerDashboardLoading() {
+    val brush = ShimmerBrush()
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // Mock a Context Bar
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .background(brush, RoundedCornerShape(12.dp))
+        )
+        // Mock 3 Widget Cards
+        repeat(3) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp)
+                    .background(brush, RoundedCornerShape(16.dp))
+            )
         }
     }
 }

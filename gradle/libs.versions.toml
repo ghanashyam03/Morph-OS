@@ -29,6 +29,9 @@ timber = "5.0.1"
 protobuf-plugin = "0.9.4"
 protobuf-java = "4.28.3"
 leakcanary = "2.14"
+android-startup = "1.2.0"
+detekt = "1.23.6"
+spotless = "6.25.0"
 
 [libraries]
 # Compose BOM
@@ -98,6 +101,7 @@ onnxruntime-android = { group = "com.microsoft.onnxruntime", name = "onnxruntime
 # Protobuf
 protobuf-javalite = { group = "com.google.protobuf", name = "protobuf-javalite", version.ref = "protobuf-java" }
 protobuf-kotlin-lite = { group = "com.google.protobuf", name = "protobuf-kotlin-lite", version.ref = "protobuf-java" }
+android-startup = { group = "androidx.startup", name = "startup-runtime", version.ref = "android-startup" }
 
 # Health Connect
 health-connect = { group = "androidx.health.connect", name = "connect-client", version.ref = "health-connect" }
@@ -129,6 +133,8 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version = "2.0.21-1.0.28" }
 protobuf = { id = "com.google.protobuf", version.ref = "protobuf-plugin" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 
 [bundles]
 compose = ["compose-ui", "compose-material3", "compose-material-icons", "compose-runtime", "compose-animation", "compose-ui-tooling-preview", "activity-compose"]

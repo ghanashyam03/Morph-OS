@@ -8,4 +8,19 @@ plugins {
     alias(libs.plugins.kotlin.compose) apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.protobuf) apply false
+    alias(libs.plugins.detekt)
+    alias(libs.plugins.spotless)
+}
+
+subprojects {
+    apply(plugin = "io.gitlab.arturbosch.detekt")
+    apply(plugin = "com.diffplug.spotless")
+
+    configure<com.diffplug.gradle.spotless.SpotlessExtension> {
+        kotlin {
+            target("**/*.kt")
+            targetExclude("**/build/**/*.kt")
+            ktlint()
+        }
+    }
 }

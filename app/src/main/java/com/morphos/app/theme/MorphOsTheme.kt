@@ -68,7 +68,8 @@ fun MorphOsTheme(
     val windowSizeClass = WindowSizeClass(widthDp, heightDp)
 
     CompositionLocalProvider(
-        LocalWindowSizeClass provides windowSizeClass
+        LocalWindowSizeClass provides windowSizeClass,
+        com.morphos.app.core.common.LocalAnimationsEnabled provides com.morphos.app.core.common.animationsEnabled()
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
