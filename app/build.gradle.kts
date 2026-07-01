@@ -3,7 +3,6 @@ plugins {
     id("morphos.hilt")
     id("morphos.compose")
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.ksp)
 }
 
 android {
@@ -37,8 +36,16 @@ dependencies {
     implementation(project(":feature:settings"))
     implementation(project(":feature:onboarding"))
 
+    implementation(libs.room.runtime)
+    implementation(libs.coil.compose)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.work.runtime.ktx)
+    implementation(libs.hilt.work)
+    ksp(libs.hilt.work.compiler)
+
     implementation(libs.navigation.compose)
     implementation(libs.timber)
+    implementation(libs.android.startup)
     
     debugImplementation(libs.leakcanary)
 }

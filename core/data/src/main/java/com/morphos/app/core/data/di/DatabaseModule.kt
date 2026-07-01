@@ -20,8 +20,8 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideMorphOsDatabase(@ApplicationContext context: Context): MorphOsDatabase {
-        // TODO: Passphrase must come from Android Keystore in production.
-        val passphrase = SQLiteDatabase.getBytes("morphos_key".toCharArray())
+        val keystoreHelper = com.morphos.app.core.data.security.KeystoreHelper(context)
+        val passphrase = keystoreHelper.getOrCreatePassphrase()
         val factory = SupportFactory(passphrase)
         return Room.databaseBuilder(
             context,

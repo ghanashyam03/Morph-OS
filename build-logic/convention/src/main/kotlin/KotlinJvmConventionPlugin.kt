@@ -22,6 +22,9 @@ class KotlinJvmConventionPlugin : Plugin<Project> {
                     )
                 }
             }
+            tasks.withType(org.gradle.api.tasks.testing.Test::class.java).configureEach {
+                useJUnitPlatform()
+            }
         }
     }
 }

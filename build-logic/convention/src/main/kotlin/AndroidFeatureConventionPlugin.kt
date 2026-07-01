@@ -19,6 +19,7 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
                 val libs = target.extensions.getByType(VersionCatalogsExtension::class.java).named("libs")
                 add("implementation", libs.findLibrary("lifecycle-viewmodel-compose").get())
                 add("implementation", libs.findLibrary("lifecycle-runtime-compose").get())
+                add("implementation", libs.findLibrary("hilt-navigation-compose").get())
             }
         }
     }

@@ -1,6 +1,7 @@
 package com.morphos.app.core.data.worker
 
 import android.content.Context
+import android.os.PowerManager
 import androidx.work.*
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.concurrent.TimeUnit
@@ -13,18 +14,28 @@ class WorkScheduler @Inject constructor(
 ) {
 
     fun scheduleAll() {
+        val pm = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
+        val powerSaveMode = pm?.isPowerSaveMode ?: false
+        scheduleAll(powerSaveMode)
+    }
+
+    fun scheduleAll(powerSaveMode: Boolean) {
         val workManager = WorkManager.getInstance(context)
 
-        // 1. Context Refresh Worker (Every 30 minutes)
+        // Adjust refresh intervals based on power save mode
+        val contextRefreshInterval = if (powerSaveMode) 60L else 30L
+        val prefetchInterval = if (powerSaveMode) 120L else 60L
+
+        // 1. Context Refresh Worker
         val contextRefreshRequest = PeriodicWorkRequestBuilder<ContextRefreshWorker>(
-            30, TimeUnit.MINUTES
+            contextRefreshInterval, TimeUnit.MINUTES
         )
         .setConstraints(Constraints.Builder().build())
         .build()
 
         workManager.enqueueUniquePeriodicWork(
             "ContextRefreshWork",
-            ExistingPeriodicWorkPolicy.KEEP,
+            ExistingPeriodicWorkPolicy.UPDATE,
             contextRefreshRequest
         )
 
@@ -62,9 +73,9 @@ class WorkScheduler @Inject constructor(
             embeddingIndexRequest
         )
 
-        // 4. Widget Data Prefetch Worker (Every 1 hour, connected only)
+        // 4. Widget Data Prefetch Worker
         val prefetchRequest = PeriodicWorkRequestBuilder<WidgetDataPrefetchWorker>(
-            1, TimeUnit.HOURS
+            prefetchInterval, TimeUnit.MINUTES
         )
         .setConstraints(
             Constraints.Builder()
@@ -75,7 +86,7 @@ class WorkScheduler @Inject constructor(
 
         workManager.enqueueUniquePeriodicWork(
             "WidgetDataPrefetchWork",
-            ExistingPeriodicWorkPolicy.KEEP,
+            ExistingPeriodicWorkPolicy.UPDATE,
             prefetchRequest
         )
 

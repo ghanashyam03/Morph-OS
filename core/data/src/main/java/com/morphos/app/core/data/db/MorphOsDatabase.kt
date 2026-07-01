@@ -16,7 +16,7 @@ import androidx.room.TypeConverters
     version = 1,
     exportSchema = false
 )
-@TypeConverters(TypeConverters::class)
+@TypeConverters(DbConverters::class)
 abstract class MorphOsDatabase : RoomDatabase() {
     abstract fun widgetDao(): WidgetDao
     abstract fun shortTermEventDao(): ShortTermEventDao

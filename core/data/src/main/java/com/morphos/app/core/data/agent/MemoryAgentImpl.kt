@@ -53,7 +53,7 @@ class MemoryAgentImpl @Inject constructor(
                     id = UUID.randomUUID().toString(),
                     sourceText = proseSummary,
                     embedding = embeddingArray,
-                    createdAt = now
+                    createdAtEpochMilli = now
                 )
                 embeddingRepository.saveEmbedding(embeddingEntry)
                 embeddingEntry.id

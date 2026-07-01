@@ -2,7 +2,6 @@ plugins {
     id("morphos.android.library")
     id("morphos.hilt")
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.ksp)
     alias(libs.plugins.protobuf)
 }
 
@@ -17,6 +16,7 @@ android {
 dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:domain"))
+    implementation(project(":core:ai"))
 
     // Room
     implementation(libs.room.runtime)

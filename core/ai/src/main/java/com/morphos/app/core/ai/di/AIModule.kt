@@ -2,7 +2,7 @@ package com.morphos.app.core.ai.di
 
 import android.content.Context
 import com.morphos.app.core.ai.*
-import com.morphos.app.core.data.network.OpenRouterApiService
+import com.morphos.app.core.ai.network.OpenRouterApiService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -16,8 +16,8 @@ object AIModule {
 
     @Provides
     @Singleton
-    fun provideLlamaCppEngine(): LlamaCppEngine {
-        return LlamaCppEngine()
+    fun provideLlamaCppEngine(@ApplicationContext context: Context): LlamaCppEngine {
+        return LlamaCppEngine(context)
     }
 
     @Provides

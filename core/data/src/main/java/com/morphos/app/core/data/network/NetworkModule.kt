@@ -1,7 +1,8 @@
 package com.morphos.app.core.data.network
 
-import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.morphos.app.core.data.BuildConfig
+import com.morphos.app.core.ai.network.OpenRouterApiService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -28,6 +29,35 @@ annotation class OpenRouterApi
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
+    class RetryInterceptor(private val maxRetries: Int = 3) : Interceptor {
+        override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
+            var attempt = 0
+            var lastException: java.io.IOException? = null
+            while (attempt < maxRetries) {
+                try {
+                    val response = chain.proceed(chain.request())
+                    if (response.isSuccessful || response.code !in listOf(429, 503)) {
+                        return response
+                    }
+                    response.close()
+                } catch (e: java.io.IOException) {
+                    lastException = e
+                }
+                attempt++
+                if (attempt < maxRetries) {
+                    val backoff = minOf(1000L * (1 shl attempt), 8000L)
+                    try {
+                        Thread.sleep(backoff)
+                    } catch (ie: InterruptedException) {
+                        Thread.currentThread().interrupt()
+                        throw java.io.IOException("Retry backoff interrupted", ie)
+                    }
+                }
+            }
+            throw lastException ?: java.io.IOException("Max retries exceeded")
+        }
+    }
+
     @Provides
     @Singleton
     fun provideOkHttpClient(): OkHttpClient {
@@ -52,6 +82,7 @@ object NetworkModule {
             .readTimeout(60, TimeUnit.SECONDS)
             .addInterceptor(loggingInterceptor)
             .addInterceptor(userAgentInterceptor)
+            .addInterceptor(RetryInterceptor())
             .build()
     }
 

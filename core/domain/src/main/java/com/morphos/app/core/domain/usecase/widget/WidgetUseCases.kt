@@ -2,6 +2,8 @@ package com.morphos.app.core.domain.usecase.widget
 
 import com.morphos.app.core.common.AppResult
 import com.morphos.app.core.common.safeCall
+import com.morphos.app.core.common.onSuccess
+import com.morphos.app.core.common.onError
 import com.morphos.app.core.domain.agent.IntentAgent
 import com.morphos.app.core.domain.agent.MemoryAgent
 import com.morphos.app.core.domain.agent.PlanningAgent
@@ -24,23 +26,21 @@ class CreateWidgetUseCase @Inject constructor(
     private val widgetRepository: WidgetRepository
 ) : UseCase<CreateWidgetParams, WidgetConfig>() {
     override suspend fun invoke(params: CreateWidgetParams): AppResult<WidgetConfig> = safeCall {
-        require(params.plan.suggestedName.isNotBlank()) { "Suggested name cannot be blank" }
+        val suggestedName = if (params.plan.suggestedName.isBlank()) {
+            "Widget_${params.plan.selectedTemplateId}"
+        } else {
+            params.plan.suggestedName
+        }
         require(params.plan.selectedTemplateId.isNotBlank()) { "Template ID cannot be blank" }
 
         val id = UUID.randomUUID().toString()
         val now = System.currentTimeMillis()
 
-        // Map slotAssignments to SlotConfig
-        val slots = params.plan.slotAssignments.mapValues { (slotId, pluginId) ->
-            SlotConfig(
-                slotId = slotId,
-                contentType = ContentType.TEXT, // Default mapping
-                dataSourceId = "${pluginId}_source"
-            )
-        }
+        val plugins = params.plan.slotAssignments.values.distinct()
+        val slots = createTemplateSlots(params.plan.selectedTemplateId, plugins, suggestedName)
 
         // Map slotAssignments to DataBinding
-        val dataBindings = params.plan.slotAssignments.map { (_, pluginId) ->
+        val dataBindings = plugins.map { pluginId ->
             DataBinding(
                 dataSourceId = "${pluginId}_source",
                 pluginId = pluginId,
@@ -50,7 +50,7 @@ class CreateWidgetUseCase @Inject constructor(
 
         val config = WidgetConfig(
             id = id,
-            name = params.plan.suggestedName,
+            name = suggestedName,
             description = params.plan.suggestedDescription,
             templateId = params.plan.selectedTemplateId,
             sizeClass = params.sizeClass,
@@ -64,6 +64,105 @@ class CreateWidgetUseCase @Inject constructor(
 
         widgetRepository.saveWidget(config).onSuccess {}.onError { throw it }
         config
+    }
+}
+
+private data class SlotSpec(
+    val id: String,
+    val plugin: String? = null,
+    val field: String? = null,
+    val fallback: String
+)
+
+private fun createTemplateSlots(
+    templateId: String,
+    plugins: List<String>,
+    widgetName: String
+): Map<String, SlotConfig> {
+    fun plugin(index: Int, default: String = "clock") = plugins.getOrNull(index) ?: default
+    fun valueFallback(id: String, source: String): String = when (source) {
+        "clock" -> if (id.contains("date")) "Today" else "--:--"
+        "battery" -> "Battery --%"
+        "weather" -> if (id == "temperature") "--°" else "Weather unavailable"
+        "steps" -> "0"
+        "calendar" -> if (id.contains("time")) "Today" else "No upcoming events"
+        "reminders" -> "No pending reminders"
+        "countdown" -> if (id.contains("days")) "0" else "Countdown"
+        "notifications" -> "No notifications"
+        "news_rss" -> "No headlines"
+        else -> "No data"
+    }
+    fun fieldFor(source: String, id: String): String = when (source) {
+        "clock" -> if (id.contains("date")) "date" else "time"
+        "battery" -> "level"
+        "weather" -> when {
+            id.contains("wind") -> "windspeed"
+            id.contains("condition") -> "weathercode"
+            else -> "temperature"
+        }
+        "steps" -> "steps"
+        "calendar" -> if (id.contains("time")) "startTime" else "title"
+        "reminders" -> "title"
+        "countdown" -> if (id.contains("days")) "daysLeft" else "label"
+        else -> "title"
+    }
+    val specs = when (templateId) {
+        "TPL_WEATHER_FOCUS" -> listOf(
+            SlotSpec("temperature", "weather", "temperature", "--°"),
+            SlotSpec("condition", "weather", "weathercode", "Current weather"),
+            SlotSpec("wind_speed", "weather", "windspeed", "--"),
+            SlotSpec("condition_icon", fallback = "☀")
+        )
+        "TPL_HERO_PROGRESS" -> listOf(
+            SlotSpec("title", fallback = widgetName),
+            SlotSpec("progress_value", "steps", "steps", "0"),
+            SlotSpec("progress_max", fallback = "10000"),
+            SlotSpec("detail", "battery", "level", "Daily progress")
+        )
+        "TPL_TIMELINE" -> listOf(
+            SlotSpec("event_0_title", "calendar", "title", "No upcoming events"),
+            SlotSpec("event_0_time", "clock", "time", "Today")
+        )
+        "TPL_LIST_COMPACT" -> (1..4).map { index ->
+            val source = plugin((index - 1) % plugins.size.coerceAtLeast(1), "reminders")
+            SlotSpec("item_$index", source, fieldFor(source, "item_$index"), valueFallback("item_$index", source))
+        }
+        "TPL_COUNTDOWN" -> listOf(
+            SlotSpec("label", "countdown", "label", widgetName),
+            SlotSpec("days_left", "countdown", "daysLeft", "0"),
+            SlotSpec("hours_left", "countdown", "hoursLeft", "0")
+        )
+        "TPL_GRID_3X1" -> (1..3).flatMap { index ->
+            val source = plugin(index - 1)
+            listOf(
+                SlotSpec("slot_${index}_icon", fallback = source.replaceFirstChar { it.uppercase() }),
+                SlotSpec("slot_${index}_value", source, fieldFor(source, "slot_${index}_value"), valueFallback("slot_${index}_value", source))
+            )
+        }
+        "TPL_CARD_SINGLE" -> {
+            val source = plugin(0)
+            listOf(
+                SlotSpec("header", fallback = widgetName),
+                SlotSpec("body", source, fieldFor(source, "body"), valueFallback("body", source)),
+                SlotSpec("action_label", fallback = "Open MorphOS")
+            )
+        }
+        else -> (1..2).flatMap { index ->
+            val source = plugin(index - 1)
+            listOf(
+                SlotSpec("header_$index", fallback = source.replaceFirstChar { it.uppercase() }),
+                SlotSpec("body_$index", source, fieldFor(source, "body_$index"), valueFallback("body_$index", source))
+            )
+        }
+    }
+    return specs.associate { spec ->
+        spec.id to SlotConfig(
+            slotId = spec.id,
+            contentType = ContentType.TEXT,
+            dataSourceId = spec.plugin?.let { "${it}_source" }.orEmpty(),
+            transformExpression = spec.field,
+            fallbackValue = spec.fallback
+        )
     }
 }
 

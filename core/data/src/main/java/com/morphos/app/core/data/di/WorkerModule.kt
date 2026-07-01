@@ -16,6 +16,6 @@ object WorkerModule {
     @Provides
     @Singleton
     fun provideWorkManager(@ApplicationContext context: Context): WorkManager {
-        TODO("Not yet implemented")
+        return WorkManager.getInstance(context)
     }
 }

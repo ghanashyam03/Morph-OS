@@ -4,7 +4,7 @@ import androidx.room.TypeConverter
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-object TypeConverters {
+object DbConverters {
     private val json = Json { ignoreUnknownKeys = true }
 
     @TypeConverter

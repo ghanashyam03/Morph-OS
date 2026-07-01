@@ -16,12 +16,22 @@ class IntentAgentImpl @Inject constructor(
     private val dispatchers: AppDispatchers
 ) : IntentAgent {
 
+    private fun sanitizeInput(input: String): String {
+        return input
+            .replace(Regex("<[^>]*>"), "") // Strip HTML tags
+            .replace(Regex("(?i)javascript:"), "") // Strip javascript protocol
+            .replace(Regex("(?i)<script.*?>.*?</script>"), "") // Strip script tags
+            .replace(Regex("['\"#;\\-\\-*]"), "") // Strip simple SQL/comment chars
+            .trim()
+    }
+
     override suspend fun parseIntent(
         rawInput: String,
         context: ContextSnapshot
     ): AppResult<WidgetIntent> = withContext(dispatchers.default) {
         safeCall {
-            val lower = rawInput.lowercase()
+            val sanitizedInput = sanitizeInput(rawInput)
+            val lower = sanitizedInput.lowercase()
 
             // Step 1: Keyword matching fallback
             val keywordType = when {
@@ -36,7 +46,7 @@ class IntentAgentImpl @Inject constructor(
 
             if (keywordType != null) {
                 return@safeCall WidgetIntent(
-                    rawInput = rawInput,
+                    rawInput = sanitizedInput,
                     intentType = keywordType,
                     slots = emptyMap(),
                     confidence = 0.7f,
@@ -47,7 +57,7 @@ class IntentAgentImpl @Inject constructor(
             // Step 2: Tier 0 local model
             if (aiEngineManager.isTier0Available()) {
                 val enumList = IntentType.values().joinToString(", ") { it.name }
-                val prompt = "Classify this widget request into one of: [$enumList]. Request: '${rawInput}'. Reply with only the enum value name."
+                val prompt = "Classify this widget request into one of: [$enumList]. Request: '${sanitizedInput}'. Reply with only the enum value name."
                 val response = aiEngineManager.inferTier0(prompt).trim()
                 val parsedType = try {
                     IntentType.valueOf(response)
@@ -57,7 +67,7 @@ class IntentAgentImpl @Inject constructor(
 
                 if (parsedType != IntentType.UNKNOWN) {
                     return@safeCall WidgetIntent(
-                        rawInput = rawInput,
+                        rawInput = sanitizedInput,
                         intentType = parsedType,
                         slots = emptyMap(),
                         confidence = 0.85f,
@@ -68,7 +78,7 @@ class IntentAgentImpl @Inject constructor(
 
             // Step 3: Cloud Fallback
             WidgetIntent(
-                rawInput = rawInput,
+                rawInput = sanitizedInput,
                 intentType = IntentType.UNKNOWN,
                 slots = emptyMap(),
                 confidence = 0.1f,

@@ -38,7 +38,7 @@ class EmbeddingIndexWorker @AssistedInject constructor(
                     id = UUID.randomUUID().toString(),
                     sourceText = memory.content,
                     embedding = embeddingArray,
-                    createdAt = System.currentTimeMillis()
+                    createdAtEpochMilli = System.currentTimeMillis()
                 )
 
                 embeddingRepository.saveEmbedding(embeddingEntry)

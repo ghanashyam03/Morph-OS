@@ -1,9 +1,9 @@
 package com.morphos.app.core.ai
 
-import com.morphos.app.core.data.BuildConfig
-import com.morphos.app.core.data.network.ChatMessage
-import com.morphos.app.core.data.network.OpenRouterApiService
-import com.morphos.app.core.data.network.OpenRouterRequest
+import com.morphos.app.core.ai.BuildConfig
+import com.morphos.app.core.ai.network.ChatMessage
+import com.morphos.app.core.ai.network.OpenRouterApiService
+import com.morphos.app.core.ai.network.OpenRouterRequest
 import javax.inject.Inject
 import javax.inject.Singleton
 
