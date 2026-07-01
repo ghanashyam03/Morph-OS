@@ -72,7 +72,7 @@ class ContextAgentImpl @Inject constructor(
 
         // Power Saver
         val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
-        val isBatterySaver = pm.isBatterySaverMode
+        val isBatterySaver = pm.isPowerSaveMode
 
         // Upcoming Calendar Event (Lazy check)
         val calendarEvent = try {

@@ -12,7 +12,7 @@ import androidx.glance.LocalSize
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.provideContent
-import androidx.glance.appwidget.state.currentState
+import androidx.glance.currentState
 import androidx.glance.background
 import androidx.glance.layout.*
 import androidx.glance.text.Text

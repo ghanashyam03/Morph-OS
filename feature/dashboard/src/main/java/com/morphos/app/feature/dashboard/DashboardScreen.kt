@@ -25,10 +25,25 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.platform.LocalContext
 import com.morphos.app.core.domain.model.ContextSnapshot
 import com.morphos.app.core.domain.model.PrioritizedNotification
 import com.morphos.app.core.domain.model.WidgetConfig
 import com.morphos.app.core.widget.WidgetTemplateRegistry
+import com.morphos.app.core.widget.WidgetPinning
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -40,6 +55,7 @@ fun DashboardScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
     var pinInstructionsWidgetId by remember { mutableStateOf<String?>(null) }
     var showDeleteConfirmationWidget by remember { mutableStateOf<WidgetConfig?>(null) }
 
@@ -52,7 +68,12 @@ fun DashboardScreen(
                     snackbarHostState.showSnackbar(effect.message)
                 }
                 is DashboardEffect.ShowPinInstructions -> {
-                    pinInstructionsWidgetId = effect.widgetId
+                    val widget = state.widgets.firstOrNull { it.id == effect.widgetId }
+                    if (widget == null) {
+                        snackbarHostState.showSnackbar("Widget no longer exists")
+                    } else if (!WidgetPinning.request(context, widget)) {
+                        pinInstructionsWidgetId = effect.widgetId
+                    }
                 }
             }
         }
@@ -192,6 +213,7 @@ fun DashboardScreen(
         }
     }
 }
+}
 
 @Composable
 fun DashboardContent(
@@ -275,12 +297,15 @@ fun ContextBar(snapshot: ContextSnapshot) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.NetworkWifi, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(text = snapshot.networkType, style = MaterialTheme.typography.bodySmall)
+                Text(
+                    text = if (snapshot.isOnWifi) "WiFi" else if (snapshot.isConnected) "Cellular" else "Offline",
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.LocationOn, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(text = if (snapshot.locationLatitude != 0.0) "Located" else "Unknown", style = MaterialTheme.typography.bodySmall)
+                Text(text = snapshot.locationLabel ?: "Unknown", style = MaterialTheme.typography.bodySmall)
             }
         }
     }
@@ -305,16 +330,16 @@ fun WidgetCard(
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
-            .androidx.compose.ui.draw.scale(scale)
+            .scale(scale)
             .combinedClickable(
                 interactionSource = interactionSource,
                 indication = androidx.compose.foundation.LocalIndication.current,
                 onClick = onTap,
                 onLongClick = { expandedMenu = true }
             )
-            .androidx.compose.ui.semantics.semantics(mergeDescendants = true) {
-                androidx.compose.ui.semantics.contentDescription = "Widget card: ${config.name}. Double tap to open."
-                androidx.compose.ui.semantics.role = androidx.compose.ui.semantics.Role.Button
+            .semantics(mergeDescendants = true) {
+                contentDescription = "Widget card: ${config.name}. Double tap to open."
+                role = Role.Button
             },
         shape = RoundedCornerShape(16.dp)
     ) {
@@ -388,11 +413,22 @@ fun WidgetCard(
                     .padding(8.dp),
                 contentAlignment = Alignment.Center
             ) {
-                val template = WidgetTemplateRegistry.getTemplate(config.templateId)
-                if (template != null) {
-                    template.Preview()
-                } else {
-                    Text(text = "Preview Unavailable", style = MaterialTheme.typography.bodyMedium)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(config.name, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        config.dataBindings.joinToString(" • ") {
+                            it.pluginId.replace('_', ' ').replaceFirstChar(Char::uppercase)
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        textAlign = TextAlign.Center
+                    )
+                    val fallbacks = config.slots.values.map { it.fallbackValue }
+                        .filter { it.isNotBlank() && it != config.name }.take(2)
+                    if (fallbacks.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(fallbacks.joinToString("  |  "), style = MaterialTheme.typography.labelSmall)
+                    }
                 }
             }
 
@@ -457,7 +493,7 @@ fun NotificationSummaryCard(
                         Spacer(modifier = Modifier.width(8.dp))
                         Column {
                             Text(text = item.appName, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
-                            Text(text = item.content, style = MaterialTheme.typography.bodySmall, maxLines = 1)
+                            Text(text = item.text ?: "", style = MaterialTheme.typography.bodySmall, maxLines = 1)
                         }
                     }
                 }

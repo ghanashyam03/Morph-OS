@@ -1,10 +1,12 @@
 package com.morphos.app.core.widget
 
 import android.app.Activity
+import android.content.ComponentName
 import androidx.compose.runtime.Composable
 import androidx.glance.GlanceModifier
+import androidx.glance.action.Action
 import androidx.glance.action.clickable
-import androidx.glance.appwidget.action.actionStartActivity
+import androidx.glance.action.actionStartActivity
 import com.morphos.app.core.domain.model.WidgetSizeClass
 
 interface WidgetTemplate {
@@ -22,16 +24,10 @@ interface WidgetTemplate {
     fun Preview()
 }
 
-@Suppress("UNCHECKED_CAST")
+fun getMainActivityAction(): Action {
+    return actionStartActivity(ComponentName("com.morphos.app", "com.morphos.app.MainActivity"))
+}
+
 fun GlanceModifier.clickableToApp(): GlanceModifier {
-    val mainActivityClass = try {
-        Class.forName("com.morphos.app.MainActivity") as? Class<out Activity>
-    } catch (e: Exception) {
-        null
-    }
-    return if (mainActivityClass != null) {
-        this.clickable(actionStartActivity(mainActivityClass))
-    } else {
-        this
-    }
+    return this.clickable(getMainActivityAction())
 }

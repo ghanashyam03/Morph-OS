@@ -8,4 +8,6 @@ android {
 }
 
 dependencies {
+    implementation(project(":core:widget"))
+    implementation(libs.hilt.navigation.compose)
 }

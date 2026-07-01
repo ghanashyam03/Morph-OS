@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -17,8 +18,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.morphos.app.core.widget.WidgetPinning
 
 @Composable
 fun WidgetCreatorScreen(
@@ -115,6 +118,8 @@ fun SuccessScreen(
     state: WidgetCreatorState,
     onDismiss: () -> Unit
 ) {
+    val context = LocalContext.current
+    var pinRequested by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -143,13 +148,25 @@ fun SuccessScreen(
         )
         Spacer(modifier = Modifier.height(12.dp))
         Text(
-            text = "To see it in action, go to your home screen, long press, and pin the MorphOS Widget.",
+            text = if (pinRequested) "Approve the launcher prompt to add it to your home screen."
+            else "Add this widget directly to your home screen.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
             lineHeight = 22.sp
         )
         Spacer(modifier = Modifier.height(40.dp))
+        Button(
+            onClick = {
+                state.createdWidget?.let { pinRequested = WidgetPinning.request(context, it) }
+            },
+            enabled = !pinRequested && state.createdWidget != null,
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.fillMaxWidth().height(50.dp)
+        ) {
+            Text(if (pinRequested) "Pin request sent" else "Add to Home Screen")
+        }
+        Spacer(modifier = Modifier.height(8.dp))
         Button(
             onClick = onDismiss,
             shape = RoundedCornerShape(12.dp),

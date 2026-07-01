@@ -109,7 +109,7 @@ fun EmbeddingEntryEntity.toDomain(): EmbeddingEntry {
         id = id,
         sourceText = sourceText,
         embedding = array,
-        createdAt = createdAt
+        createdAtEpochMilli = createdAt
     )
 }
 
@@ -120,6 +120,6 @@ fun EmbeddingEntry.toEntity(): EmbeddingEntryEntity {
         id = id,
         sourceText = sourceText,
         embeddingBlob = byteBuffer.array(),
-        createdAt = createdAt
+        createdAt = createdAtEpochMilli
     )
 }

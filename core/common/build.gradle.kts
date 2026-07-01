@@ -1,15 +1,17 @@
 plugins {
-    alias(libs.plugins.kotlin.jvm)
+    id("morphos.android.library")
+    id("morphos.hilt")
+    id("morphos.compose")
+    alias(libs.plugins.kotlin.serialization)
+}
+
+android {
+    namespace = "com.morphos.app.core.common"
 }
 
 dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
-    compileOnly("com.google.dagger:hilt-core:${libs.versions.hilt.asProvider().get()}")
-    compileOnly("javax.inject:javax.inject:1")
-
-    // For AnimationUtils CompositionLocal
-    compileOnly("androidx.compose.runtime:runtime:1.7.5") // compileOnly to avoid leaks
-
+    
     testImplementation(libs.bundles.testing.unit)
 }

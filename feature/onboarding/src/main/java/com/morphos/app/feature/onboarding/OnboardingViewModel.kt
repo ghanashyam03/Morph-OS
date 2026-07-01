@@ -93,10 +93,10 @@ class OnboardingViewModel @Inject constructor(
         viewModelScope.launch(dispatchers.io + exceptionHandler) {
             val config = ModelConfig(
                 name = "smollm2-135m-q4",
-                filename = "smollm2-135m-q4.gguf",
-                url = "https://huggingface.co/second-state/SmolLM2-135M-Instruct-GGUF/resolve/main/smollm2-135m-instruct-q4_k_m.gguf",
-                sha256 = "mock_sha",
-                sizeBytes = 90_000_000L
+                filename = "SmolLM2-135M-Instruct.Q4_K_M.gguf",
+                url = "https://huggingface.co/jc-builds/SmolLM2-135M-Instruct-Q4_K_M-GGUF/resolve/main/SmolLM2-135M-Instruct.Q4_K_M.gguf",
+                sha256 = "8030f04528538d47bda434f6f0bdf3952c40a58123e4d5e755332f23731a8684",
+                sizeBytes = 105_454_144L
             )
             modelDownloadManager.downloadModel(config)
                 .collect { progress ->

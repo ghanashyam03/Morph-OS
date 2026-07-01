@@ -96,13 +96,7 @@ class CardSingleTemplate : WidgetTemplate {
                         Spacer(modifier = GlanceModifier.height(12.dp))
                         androidx.glance.appwidget.components.FilledButton(
                             text = actionLabel,
-                            onClick = actionStartActivity(
-                                try {
-                                    Class.forName("com.morphos.app.MainActivity") as Class<out android.app.Activity>
-                                } catch (e: Exception) {
-                                    android.app.Activity::class.java
-                                }
-                            )
+                            onClick = com.morphos.app.core.widget.getMainActivityAction()
                         )
                     }
                 }

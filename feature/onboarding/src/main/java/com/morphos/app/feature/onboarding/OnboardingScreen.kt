@@ -350,7 +350,7 @@ fun AiSetupPage(
         )
         Spacer(modifier = Modifier.height(12.dp))
         Text(
-            text = "MorphOS uses a lightweight local AI model (~90 MB) for on-device smart suggestions. This download is fully optional.",
+            text = "MorphOS uses a lightweight local AI model (~101 MB) for on-device smart suggestions. This download is fully optional.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -366,7 +366,7 @@ fun AiSetupPage(
             ) {
                 Icon(Icons.Default.Download, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Download AI Model (90 MB)")
+                Text("Download AI Model (101 MB)")
             }
             Spacer(modifier = Modifier.height(12.dp))
             TextButton(

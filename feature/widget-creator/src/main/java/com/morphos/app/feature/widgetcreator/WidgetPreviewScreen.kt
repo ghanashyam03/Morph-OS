@@ -78,11 +78,25 @@ fun WidgetPreviewScreen(
                         .padding(8.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    val template = WidgetTemplateRegistry.getTemplate(state.selectedTemplate ?: "")
-                    if (template != null) {
-                        template.Preview()
-                    } else {
-                        Text("Preview Stub", style = MaterialTheme.typography.bodyMedium)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            state.widgetName.ifBlank { "Custom Widget" },
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            state.generatedPlan?.slotAssignments?.values?.distinct()
+                                ?.joinToString(" • ") { it.replace('_', ' ').replaceFirstChar(Char::uppercase) }
+                                .orEmpty(),
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                        Text(
+                            state.selectedTemplate?.removePrefix("TPL_")?.replace('_', ' ').orEmpty(),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }

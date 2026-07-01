@@ -2,6 +2,7 @@ plugins {
     id("morphos.android.library")
     id("morphos.hilt")
     id("morphos.compose")
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -11,6 +12,12 @@ android {
 dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:domain"))
+    implementation(project(":core:data"))
+    
+    implementation(libs.kotlinx.serialization.json)
+    
+    // WorkManager
+    implementation(libs.work.runtime.ktx)
 
     // Glance
     implementation(libs.glance.appwidget)

@@ -2,8 +2,11 @@ package com.morphos.app.core.widget
 
 import android.content.Context
 import androidx.glance.appwidget.GlanceAppWidgetManager
+import androidx.glance.appwidget.AppWidgetId
 import androidx.glance.appwidget.state.updateAppWidgetState
 import com.morphos.app.core.common.AppDispatchers
+import com.morphos.app.core.common.onSuccess
+import com.morphos.app.core.common.onError
 import com.morphos.app.core.domain.model.PluginData
 import com.morphos.app.core.domain.model.SlotConfig
 import com.morphos.app.core.domain.repository.PluginRepository
@@ -62,11 +65,11 @@ class WidgetUpdatePipeline @Inject constructor(
             )
             
             // 4. Update Glance state for this widget
-            val glanceId = GlanceAppWidgetManager(context)
+            val boundIds = WidgetBindingStore(context).appWidgetIdsFor(widgetId)
+            GlanceAppWidgetManager(context)
                 .getGlanceIds(MorphOsGlanceWidget::class.java)
-                .firstOrNull { it.hashCode().toString() == widgetId }
-            
-            if (glanceId != null) {
+                .filter { (it as? AppWidgetId)?.appWidgetId in boundIds }
+                .forEach { glanceId ->
                 updateAppWidgetState(context, MorphOsWidgetStateDefinition, glanceId) { newState }
                 MorphOsGlanceWidget().update(context, glanceId)
             }

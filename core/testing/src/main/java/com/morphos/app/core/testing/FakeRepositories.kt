@@ -42,7 +42,7 @@ class FakeWidgetRepository : WidgetRepository {
 class FakeMemoryRepository : MemoryRepository {
     private val events = mutableListOf<ShortTermEvent>()
     private val memories = mutableListOf<LongTermMemory>()
-    private var memoryProfile = MemoryProfile(emptyMap(), emptyList(), emptyMap())
+    private var memoryProfile = MemoryProfile()
 
     override suspend fun recordShortTermEvent(event: ShortTermEvent): AppResult<Unit> {
         events.add(event)
@@ -66,7 +66,7 @@ class FakeMemoryRepository : MemoryRepository {
     }
 
     override fun getLongTermMemories(type: MemoryType?): Flow<List<LongTermMemory>> {
-        val filtered = if (type == null) memories else memories.filter { it.type == type }
+        val filtered = if (type == null) memories else memories.filter { it.memoryType == type }
         return flowOf(filtered)
     }
 
@@ -79,7 +79,7 @@ class FakeMemoryRepository : MemoryRepository {
     override suspend fun clearAllMemory(): AppResult<Unit> {
         events.clear()
         memories.clear()
-        memoryProfile = MemoryProfile(emptyMap(), emptyList(), emptyMap())
+        memoryProfile = MemoryProfile()
         return AppResult.Success(Unit)
     }
 }
@@ -87,9 +87,9 @@ class FakeMemoryRepository : MemoryRepository {
 class FakePluginRepository : PluginRepository {
     private val cachedData = mutableMapOf<String, PluginData>()
     var mockFetchResult: AppResult<PluginData> = AppResult.Error(Exception("Not Mocked"))
-    var availablePlugins: List<DataPlugin> = emptyList()
+    var mockAvailablePlugins: List<DataPlugin> = emptyList()
 
-    override fun getAvailablePlugins(): List<DataPlugin> = availablePlugins
+    override fun getAvailablePlugins(): List<DataPlugin> = mockAvailablePlugins
 
     override suspend fun fetchPluginData(pluginId: String, config: Map<String, String>): AppResult<PluginData> {
         return mockFetchResult

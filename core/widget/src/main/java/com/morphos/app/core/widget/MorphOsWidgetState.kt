@@ -43,14 +43,19 @@ object MorphOsWidgetStateDefinition : GlanceStateDefinition<MorphOsWidgetState> 
             override val data: Flow<MorphOsWidgetState> = prefsDataStore.data.map { prefs ->
                 val jsonStr = prefs[stateJsonKey]
                 if (jsonStr.isNullOrBlank()) {
+                    // Return default state with sample data
                     MorphOsWidgetState(
                         widgetId = fileKey,
                         widgetName = "MorphOS Widget",
                         templateId = "TPL_CARD_SINGLE",
-                        resolvedSlots = emptyMap(),
+                        resolvedSlots = mapOf(
+                            "header" to "MorphOS",
+                            "body" to "Widget created successfully!",
+                            "action_label" to "Open App"
+                        ),
                         isLoading = false,
                         errorMessage = null,
-                        lastUpdated = 0L
+                        lastUpdated = System.currentTimeMillis()
                     )
                 } else {
                     try {
@@ -60,10 +65,14 @@ object MorphOsWidgetStateDefinition : GlanceStateDefinition<MorphOsWidgetState> 
                             widgetId = fileKey,
                             widgetName = "MorphOS Widget",
                             templateId = "TPL_CARD_SINGLE",
-                            resolvedSlots = emptyMap(),
+                            resolvedSlots = mapOf(
+                                "header" to "MorphOS",
+                                "body" to "Widget created successfully!",
+                                "action_label" to "Open App"
+                            ),
                             isLoading = false,
                             errorMessage = "Parse Error: ${e.message}",
-                            lastUpdated = 0L
+                            lastUpdated = System.currentTimeMillis()
                         )
                     }
                 }
@@ -78,10 +87,14 @@ object MorphOsWidgetStateDefinition : GlanceStateDefinition<MorphOsWidgetState> 
                             widgetId = fileKey,
                             widgetName = "MorphOS Widget",
                             templateId = "TPL_CARD_SINGLE",
-                            resolvedSlots = emptyMap(),
+                            resolvedSlots = mapOf(
+                                "header" to "MorphOS Widget",
+                                "body" to "Widget created successfully!",
+                                "action_label" to "Open App"
+                            ),
                             isLoading = false,
                             errorMessage = null,
-                            lastUpdated = 0L
+                            lastUpdated = System.currentTimeMillis()
                         )
                     } else {
                         try {
@@ -91,10 +104,14 @@ object MorphOsWidgetStateDefinition : GlanceStateDefinition<MorphOsWidgetState> 
                                 widgetId = fileKey,
                                 widgetName = "MorphOS Widget",
                                 templateId = "TPL_CARD_SINGLE",
-                                resolvedSlots = emptyMap(),
+                                resolvedSlots = mapOf(
+                                    "header" to "MorphOS",
+                                    "body" to "Widget created successfully!",
+                                    "action_label" to "Open App"
+                                ),
                                 isLoading = false,
                                 errorMessage = null,
-                                lastUpdated = 0L
+                                lastUpdated = System.currentTimeMillis()
                             )
                         }
                     }

@@ -2,22 +2,30 @@ plugins {
     id("morphos.android.library")
     id("morphos.hilt")
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.ksp)
 }
 
 android {
     namespace = "com.morphos.app.core.ai"
+    
+    buildFeatures {
+        buildConfig = true
+    }
+    
+    defaultConfig {
+        buildConfigField("String", "OPENROUTER_API_KEY", "\"dummy_key\"")
+    }
 }
 
 dependencies {
+    implementation(project(":llama-runtime"))
     implementation(project(":core:common"))
     implementation(project(":core:domain"))
 
+    // WorkManager
+    implementation(libs.work.runtime.ktx)
+
     // ONNX Runtime
     implementation(libs.onnxruntime.android)
-
-    // Llama.cpp local AAR
-    implementation(files("libs/llama-android.aar"))
 
     // Networking
     implementation(libs.retrofit)

@@ -1,4 +1,4 @@
-package com.morphos.app.core.data.network
+package com.morphos.app.core.ai.network
 
 import kotlinx.serialization.Serializable
 import retrofit2.http.Body

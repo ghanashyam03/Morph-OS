@@ -1,7 +1,8 @@
 package com.morphos.app.core.data.network
 
-import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.morphos.app.core.data.BuildConfig
+import com.morphos.app.core.ai.network.OpenRouterApiService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

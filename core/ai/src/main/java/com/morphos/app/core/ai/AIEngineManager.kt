@@ -26,6 +26,8 @@ class AIEngineManager @Inject constructor(
         return llamaCppEngine.inferTier1(prompt)
     }
 
+    suspend fun inferLocalPlan(prompt: String): String = llamaCppEngine.inferPlanning(prompt)
+
     suspend fun inferTier2(prompt: String): String {
         return cloudAIEngine.inferTier2(prompt)
     }

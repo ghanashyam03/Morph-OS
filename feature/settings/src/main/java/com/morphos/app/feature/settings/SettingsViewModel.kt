@@ -135,11 +135,11 @@ class SettingsViewModel @Inject constructor(
     private fun downloadTier1() {
         viewModelScope.launch(dispatchers.io + exceptionHandler) {
             val config = ModelConfig(
-                name = "gemma3-1b",
-                filename = "gemma-3-1b-it-q4_k_m.gguf",
-                url = "https://huggingface.co/google/gemma-3-1b-it-GGUF/resolve/main/gemma-3-1b-it-q4_k_m.gguf",
-                sha256 = "placeholder",
-                sizeBytes = 900_000_000L
+                name = "qwen2.5-0.5b-instruct",
+                filename = "qwen2.5-0.5b-instruct-q4_k_m.gguf",
+                url = "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf",
+                sha256 = "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db",
+                sizeBytes = 491_400_032L
             )
             modelDownloadManager.downloadModel(config)
                 .collect { progress ->
@@ -149,13 +149,13 @@ class SettingsViewModel @Inject constructor(
                                 isDownloadingTier1 = false,
                                 isTier1Downloaded = true,
                                 tier1DownloadProgress = 100,
-                                message = "Gemma-3 1B download complete!"
+                                message = "Qwen2.5 0.5B download complete!"
                             )
                         } else if (progress < 0f) {
                             it.copy(
                                 isDownloadingTier1 = false,
                                 tier1DownloadProgress = 0,
-                                message = "Gemma-3 1B download failed"
+                                message = "Model download failed. Check your connection and storage, then retry."
                             )
                         } else {
                             it.copy(tier1DownloadProgress = (progress * 100).toInt())

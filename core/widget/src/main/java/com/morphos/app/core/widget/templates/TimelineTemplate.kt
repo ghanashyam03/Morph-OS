@@ -2,6 +2,7 @@ package com.morphos.app.core.widget.templates
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text as ComposeText
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -23,60 +24,69 @@ class TimelineTemplate : WidgetTemplate {
     override val templateId: String = "TPL_TIMELINE"
     override val displayName: String = "Timeline List"
     override val description: String = "Displays upcoming timeline schedule events."
-    override val supportedSizes: List<WidgetSizeClass> = listOf(WidgetSizeClass.SMALL, WidgetSizeClass.MEDIUM, WidgetSizeClass.LARGE)
-    override val requiredSlots: List<String> = listOf("event_1_title", "event_1_time")
-    override val optionalSlots: List<String> = listOf("event_2_title", "event_2_time", "event_3_title", "event_3_time")
+    override val supportedSizes: List<WidgetSizeClass> = listOf(WidgetSizeClass.MEDIUM, WidgetSizeClass.LARGE)
+    override val requiredSlots: List<String> = listOf("event_0_title", "event_0_time")
+    override val optionalSlots: List<String> = listOf(
+        "event_1_title", "event_1_time",
+        "event_2_title", "event_2_time",
+        "event_3_title", "event_3_time"
+    )
 
     @Composable
     override fun Render(slots: Map<String, String>, sizeClass: WidgetSizeClass, widgetName: String) {
-        val baseModifier = GlanceModifier
-            .fillMaxSize()
-            .background(GlanceTheme.colors.background)
-            .padding(12.dp)
-            .clickableToApp()
+        val events = mutableListOf<TimelineEvent>()
+        getEvent(slots, 0)?.let { events.add(it) }
+        getEvent(slots, 1)?.let { events.add(it) }
+        getEvent(slots, 2)?.let { events.add(it) }
+        getEvent(slots, 3)?.let { events.add(it) }
 
-        val events = listOfNotNull(
-            getEvent(slots, 1),
-            getEvent(slots, 2),
-            getEvent(slots, 3)
-        )
-
-        when (sizeClass) {
-            WidgetSizeClass.SMALL -> {
-                val first = events.firstOrNull()
-                Box(modifier = baseModifier, contentAlignment = Alignment.CenterStart) {
-                    if (first != null) {
-                        GlanceText(
-                            text = "${first.time} ${first.title}",
-                            style = GlanceTextStyle(color = GlanceTheme.colors.onBackground, fontSize = 12.sp),
-                            maxLines = 1
-                        )
-                    }
-                }
+        androidx.glance.layout.Column(
+            modifier = GlanceModifier
+                .fillMaxSize()
+                .background(GlanceTheme.colors.widgetBackground)
+                .padding(12.dp)
+                .clickableToApp(),
+            verticalAlignment = androidx.glance.layout.Alignment.Top
+        ) {
+            androidx.glance.layout.Row(
+                modifier = GlanceModifier.fillMaxWidth(),
+                verticalAlignment = androidx.glance.layout.Alignment.CenterVertically
+            ) {
+                androidx.glance.text.Text(
+                    text = widgetName,
+                    style = GlanceTextStyle(
+                        color = GlanceTheme.colors.onBackground,
+                        fontSize = 16.sp,
+                        fontWeight = GlanceFontWeight.Bold
+                    )
+                )
             }
-            WidgetSizeClass.MEDIUM, WidgetSizeClass.LARGE -> {
-                val maxEvents = if (sizeClass == WidgetSizeClass.LARGE) 3 else 2
-                val eventsToRender = events.take(maxEvents)
+            androidx.glance.layout.Spacer(modifier = GlanceModifier.height(8.dp))
 
-                Column(modifier = baseModifier, verticalAlignment = Alignment.CenterVertically) {
-                    eventsToRender.forEach { ev ->
-                        Row(modifier = GlanceModifier.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                            GlanceText(
-                                text = ev.time,
-                                style = GlanceTextStyle(
-                                    color = GlanceTheme.colors.primary,
-                                    fontWeight = GlanceFontWeight.Bold,
-                                    fontSize = 12.sp
-                                ),
-                                modifier = GlanceModifier.width(60.dp)
-                            )
-                            Spacer(modifier = GlanceModifier.width(8.dp))
-                            GlanceText(
-                                text = ev.title,
-                                style = GlanceTextStyle(color = GlanceTheme.colors.onBackground, fontSize = 12.sp),
-                                maxLines = 1
-                            )
-                        }
+            if (events.isEmpty()) {
+                androidx.glance.text.Text(
+                    text = "No events scheduled",
+                    style = GlanceTextStyle(color = GlanceTheme.colors.onBackground, fontSize = 12.sp)
+                )
+            } else {
+                events.forEach { event ->
+                    androidx.glance.layout.Row(
+                        modifier = GlanceModifier.fillMaxWidth().padding(vertical = 4.dp),
+                        verticalAlignment = androidx.glance.layout.Alignment.CenterVertically
+                    ) {
+                        androidx.glance.text.Text(
+                            text = event.time,
+                            style = GlanceTextStyle(
+                                color = GlanceTheme.colors.primary,
+                                fontSize = 12.sp,
+                                fontWeight = GlanceFontWeight.Bold
+                            ),
+                            modifier = GlanceModifier.width(50.dp)
+                        )
+                        androidx.glance.text.Text(
+                            text = event.title,
+                            style = GlanceTextStyle(color = GlanceTheme.colors.onBackground, fontSize = 12.sp)
+                        )
                     }
                 }
             }
@@ -91,12 +101,12 @@ class TimelineTemplate : WidgetTemplate {
                 .padding(4.dp)
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
-                Row {
+                androidx.compose.foundation.layout.Row {
                     ComposeText(text = "09:00", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, modifier = Modifier.width(60.dp), fontSize = 13.sp)
                     ComposeText(text = "Lectures on History", fontSize = 13.sp)
                 }
-                Spacer(modifier = Modifier.height(4.dp))
-                Row {
+                androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(4.dp))
+                androidx.compose.foundation.layout.Row {
                     ComposeText(text = "14:00", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, modifier = Modifier.width(60.dp), fontSize = 13.sp)
                     ComposeText(text = "Gym Workout", fontSize = 13.sp)
                 }

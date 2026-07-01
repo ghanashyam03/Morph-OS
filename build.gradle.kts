@@ -23,4 +23,8 @@ subprojects {
             ktlint()
         }
     }
+
+    tasks.withType<org.gradle.api.tasks.compile.JavaCompile>().configureEach {
+        exclude("**/byRounds/**")
+    }
 }

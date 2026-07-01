@@ -8,5 +8,6 @@ android {
 }
 
 dependencies {
+    implementation(project(":core:ai"))
     implementation(libs.accompanist.permissions)
 }

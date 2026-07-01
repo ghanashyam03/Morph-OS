@@ -1,9 +1,9 @@
 package com.morphos.app.core.ai
 
-import com.morphos.app.core.data.network.ChatMessage
-import com.morphos.app.core.data.network.Choice
-import com.morphos.app.core.data.network.OpenRouterApiService
-import com.morphos.app.core.data.network.OpenRouterResponse
+import com.morphos.app.core.ai.network.ChatMessage
+import com.morphos.app.core.ai.network.Choice
+import com.morphos.app.core.ai.network.OpenRouterApiService
+import com.morphos.app.core.ai.network.OpenRouterResponse
 import io.mockk.coEvery
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension

@@ -24,6 +24,7 @@ class ComposeConventionPlugin : Plugin<Project> {
                 
                 add("implementation", libs.findLibrary("compose-ui").get())
                 add("implementation", libs.findLibrary("compose-material3").get())
+                add("implementation", libs.findLibrary("compose-material-icons").get())
                 add("implementation", libs.findLibrary("compose-ui-tooling-preview").get())
                 add("implementation", libs.findLibrary("compose-runtime").get())
                 add("implementation", libs.findLibrary("compose-animation").get())

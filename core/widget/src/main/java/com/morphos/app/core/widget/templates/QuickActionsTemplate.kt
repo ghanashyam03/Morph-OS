@@ -141,12 +141,7 @@ class QuickActionsTemplate : WidgetTemplate {
             }
             actionStartActivity(intent)
         } catch (e: Exception) {
-            val mainActivityClass = try {
-                Class.forName("com.morphos.app.MainActivity") as Class<out android.app.Activity>
-            } catch (ex: Exception) {
-                android.app.Activity::class.java
-            }
-            actionStartActivity(mainActivityClass)
+            com.morphos.app.core.widget.getMainActivityAction()
         }
     }
 
