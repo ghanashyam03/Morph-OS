@@ -30,6 +30,11 @@ obj/
 /core/ai/src/main/assets/models/
 *.gguf
 *.onnx
+# Gradle / Kotlin build outputs
+**/build/
+.kotlin/
+*.class
+*.bin
 # Crash logs
 crash-logs/
 # OS metadata
